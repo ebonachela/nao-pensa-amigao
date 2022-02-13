@@ -36,7 +36,6 @@ class YTDL(discord.PCMVolumeTransformer):
         if exists(data['id'] + '.m4a'):
             return data['id'] + '.m4a'
 
-
         if 'entries' in data:
             # take first item from a playlist
             data = data['entries'][0]
