@@ -1,6 +1,7 @@
 import youtube_dl
 import discord
 import asyncio
+from os.path import exists
 
 class YTDL(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
@@ -23,13 +24,18 @@ class YTDL(discord.PCMVolumeTransformer):
             'quiet': True,
             'no_warnings': True,
             'default_search': 'auto',
-            'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+            'source_address': '0.0.0.0', # bind to ipv4 since ipv6 addresses cause issues sometimes
+            'outtmpl': 'audio/%(id)s.%(ext)s'
         }
 
         ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+
+        if exists(data['id'] + '.m4a'):
+            return data['id'] + '.m4a'
+
 
         if 'entries' in data:
             # take first item from a playlist
