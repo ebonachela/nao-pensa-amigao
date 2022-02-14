@@ -1,5 +1,4 @@
 import asyncio
-from email.mime import audio
 import discord
 from discord.ext import commands
 from modules.YTDL import YTDL
