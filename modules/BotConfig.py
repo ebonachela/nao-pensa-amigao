@@ -8,7 +8,7 @@ class BotConfig:
                 f.write('{}')
 
         self.m_config_file = config_file
-        self.m_config = []
+        self.m_config = {}
 
         with open(self.m_config_file, "r") as jsonfile:
             self.m_config = json.load(jsonfile)

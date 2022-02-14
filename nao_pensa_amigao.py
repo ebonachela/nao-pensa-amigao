@@ -33,7 +33,7 @@ def main():
     
     @bot.command(name='add', help='Adiciona comando para tocar áudio do youtube')
     async def add(ctx, name, url):
-        serverID = ctx.message.guild.id
+        serverID = str(ctx.message.guild.id)
 
         async with ctx.typing():
             filename = await YTDL.from_url(url, loop=client.loop)
@@ -49,8 +49,6 @@ def main():
         await bot.process_commands(message)
 
         serverID = str(message.guild.id)
-
-        print(audioCommands.m_config[serverID])
 
         # arrumar essa tramoia aqui dando erro
 
