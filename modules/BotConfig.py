@@ -18,10 +18,10 @@ class BotConfig:
     
     def addCommand(self, serverID, command, url):
         if serverID in self.m_config:
-            self.m_config[serverID].append({command, url})
+            self.m_config[serverID][command] = url
         else:
-            self.m_config[serverID] = []
-            self.m_config[serverID].append({'command': command, 'url': url})
+            self.m_config[serverID] = {}
+            self.m_config[serverID][command] = url
         
         with open(self.m_config_file, "w") as f:
             json_string = json.dumps(self.m_config)

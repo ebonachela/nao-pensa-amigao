@@ -1,4 +1,5 @@
 import asyncio
+from email.mime import audio
 import discord
 from discord.ext import commands
 from modules.YTDL import YTDL
@@ -37,7 +38,7 @@ def main():
         async with ctx.typing():
             filename = await YTDL.from_url(url, loop=client.loop)
         
-        audioCommands.addCommand(serverID, name, url)
+        audioCommands.addCommand(serverID, name, filename)
         await ctx.send(f"{name} adicionado com sucesso!")
 
     @bot.event
@@ -47,6 +48,24 @@ def main():
         
         await bot.process_commands(message)
 
+        serverID = str(message.guild.id)
+
+        print(audioCommands.m_config[serverID])
+
+        # arrumar essa tramoia aqui dando erro
+
+        if message.content[0] == '!' and message.content[1:] in audioCommands.m_config[serverID]:
+            channel = message.author.voice.channel
+            voice = await channel.connect()
+
+            voice.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=audioCommands.m_config[serverID][message.content[1:]]))
+
+            while voice.is_playing():
+                await asyncio.sleep(1)
+
+            await voice.disconnect()
+
+            return
 
     bot.run(botConfig.getConfig('TOKEN'))
 
