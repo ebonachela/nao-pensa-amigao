@@ -113,6 +113,8 @@ def main():
         if message.author == client.user:
             return
         
+        await bot.process_commands(message)
+
         serverID = str(message.guild.id)
 
         # arrumar essa tramoia aqui dando erro
@@ -129,12 +131,6 @@ def main():
             await voice.disconnect()
 
             return
-        
-        try:
-            await bot.process_commands(message)
-        except:
-            await message.channel.send(f"Comando não encontrado. Digite !help para ver a lista de comandos disponíveis.")
-
 
     bot.run(os.environ['TOKEN'])
     #bot.run(botConfig.getConfig('TOKEN'))
