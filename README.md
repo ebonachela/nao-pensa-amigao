@@ -14,6 +14,6 @@ Toca o áudio do youtube:
 
 ### TODO
 
-- Adicionar comando para ver todos os comandos existentes no servidor
-- Adicionar comando para remover comando do servidor
+- Adicionar funcionalidade para ver todos os comandos existentes no servidor
+- Adicionar funcionalidade para remover comando do servidor
 - Bloquear a possibilidade de criar um comando com o nome de 'add'
