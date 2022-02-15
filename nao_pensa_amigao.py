@@ -1,5 +1,6 @@
 import asyncio
 import discord
+import os
 from discord.ext import commands
 from modules.YTDL import YTDL
 from modules.BotConfig import BotConfig
@@ -64,7 +65,7 @@ def main():
 
             return
 
-    bot.run(botConfig.getConfig('TOKEN'))
+    bot.run(os.environ['TOKEN'])
 
 if __name__ == '__main__':
     main()
