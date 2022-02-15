@@ -7,7 +7,19 @@ Salva áudio do youtube como comando:
 ```
 !add {nome_do_comando} {url_do_youtube}
 ```
-Toca o áudio do youtube:
+Remove um comando do servidor:
+```
+!remove {nome_do_comando}
+```
+Toca o áudio do comando:
 ```
 !{nome_do_comando}
+```
+Mostra uma lista com todos os comandos disponíveis no servidor:
+```
+!list
+```
+Toca o áudio do youtube:
+```
+!play {url_do_youtube}
 ```
