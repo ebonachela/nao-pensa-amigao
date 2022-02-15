@@ -11,9 +11,3 @@ Toca o áudio do youtube:
 ```
 !{nome_do_comando}
 ```
-
-### TODO
-
-- Adicionar funcionalidade para ver todos os comandos existentes no servidor
-- Adicionar funcionalidade para remover comando do servidor
-- Bloquear a possibilidade de criar um comando com o nome de 'add'

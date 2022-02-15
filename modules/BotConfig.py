@@ -17,6 +17,9 @@ class BotConfig:
         return self.m_config[configName]
     
     def addCommand(self, serverID, command, url):
+        if command in self.m_config[serverID]:
+            return False
+
         if serverID in self.m_config:
             self.m_config[serverID][command] = url
         else:
@@ -26,6 +29,17 @@ class BotConfig:
         with open(self.m_config_file, "w") as f:
             json_string = json.dumps(self.m_config)
             f.write(json_string)
-
-
         
+        return True
+    
+    def removeCommand(self, serverID, command):
+        if command not in self.m_config[serverID]:
+            return False
+
+        del self.m_config[serverID][command]
+
+        with open(self.m_config_file, "w") as f:
+            json_string = json.dumps(self.m_config)
+            f.write(json_string)
+        
+        return True
