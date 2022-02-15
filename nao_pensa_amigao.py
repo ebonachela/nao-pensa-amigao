@@ -70,6 +70,10 @@ def main():
         for key in audioCommands.m_config[serverID]:
             members.append(f"- {key} <https://youtu.be/{audioCommands.m_config[serverID][key][6:17]}>")
 
+        if len(members) == 0:
+            await ctx.send('Nenhum comando adicionado até o momento. Utilize !add para adicionar comandos novos.')
+            return
+
         members.sort()
 
         per_page = 10
