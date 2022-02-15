@@ -1,0 +1,1 @@
+worker: python nao_pensa_amigao.py

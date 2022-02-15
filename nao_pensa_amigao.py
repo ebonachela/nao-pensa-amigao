@@ -56,7 +56,7 @@ def main():
             channel = message.author.voice.channel
             voice = await channel.connect()
 
-            voice.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=audioCommands.m_config[serverID][message.content[1:]]))
+            voice.play(discord.FFmpegPCMAudio(executable="ffmpeg", source=audioCommands.m_config[serverID][message.content[1:]]))
 
             while voice.is_playing():
                 await asyncio.sleep(1)
