@@ -11,7 +11,7 @@ def main():
     client = discord.Client(intents=intents)
     bot = commands.Bot(command_prefix='!', intents=intents)
 
-    botConfig = BotConfig("config.config")
+    #botConfig = BotConfig("config.config")
     audioCommands = BotConfig("audio_commands.config")
 
     blockedNames = ['add', 'help', 'list', 'play', 'remove']
@@ -136,8 +136,8 @@ def main():
             await message.channel.send(f"Comando não encontrado. Digite !help para ver a lista de comandos disponíveis.")
 
 
-    #bot.run(os.environ['TOKEN'])
-    bot.run(botConfig.getConfig('TOKEN'))
+    bot.run(os.environ['TOKEN'])
+    #bot.run(botConfig.getConfig('TOKEN'))
 
 if __name__ == '__main__':
     main()
