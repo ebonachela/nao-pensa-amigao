@@ -17,7 +17,7 @@ class BotConfig:
         return self.m_config[configName]
     
     def addCommand(self, serverID, command, url):
-        if (serverID not in self.m_config) or (command in self.m_config[serverID]):
+        if command in self.m_config[serverID]:
             return False
 
         if serverID in self.m_config:
