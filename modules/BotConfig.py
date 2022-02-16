@@ -17,10 +17,10 @@ class BotConfig:
         return self.m_config[configName]
     
     def addCommand(self, serverID, command, url):
-        if command in self.m_config[serverID]:
-            return False
-
         if serverID in self.m_config:
+            if command in self.m_config[serverID]:
+                return False
+
             self.m_config[serverID][command] = url
         else:
             self.m_config[serverID] = {}
