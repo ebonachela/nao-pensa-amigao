@@ -2,6 +2,7 @@ import asyncio
 import discord
 import os
 import math
+import sys
 from discord.ext import commands
 from modules.YTDL import YTDL
 from modules.BotConfig import BotConfig
@@ -11,7 +12,7 @@ def main():
     client = discord.Client(intents=intents)
     bot = commands.Bot(command_prefix='!', intents=intents)
 
-    #botConfig = BotConfig("config.config")
+    botConfig = BotConfig("config.config")
     audioCommands = BotConfig("audio_commands.config")
 
     blockedNames = ['add', 'help', 'list', 'play', 'remove']
@@ -136,8 +137,8 @@ def main():
 
             return
 
-    bot.run(os.environ['TOKEN'])
-    #bot.run(botConfig.getConfig('TOKEN'))
+    s_TOKEN = botConfig.getConfig('TOKEN') if (len(sys.argv) > 1)  else os.environ['TOKEN']
+    bot.run(s_TOKEN)
 
 if __name__ == '__main__':
     main()
