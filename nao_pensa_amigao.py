@@ -68,6 +68,10 @@ def main():
 
         serverID = str(ctx.guild.id)
 
+        if serverID not in audioCommands.m_config:
+            await ctx.send('Nenhum comando adicionado até o momento. Utilize !add para adicionar comandos novos.')
+            return
+
         for key in audioCommands.m_config[serverID]:
             members.append(f"- {key} <https://youtu.be/{audioCommands.m_config[serverID][key][6:17]}>")
 
@@ -122,7 +126,8 @@ def main():
 
         serverID = str(message.guild.id)
 
-        # arrumar essa tramoia aqui dando erro
+        if serverID not in audioCommands.m_config:
+            return
 
         if message.content[0] == '!' and message.content[1:] in audioCommands.m_config[serverID]:
             channel = message.author.voice.channel
