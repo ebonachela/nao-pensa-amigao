@@ -28,7 +28,7 @@ def main():
 
         async with ctx.typing():
             filename = await YTDL.from_url(url, loop=client.loop)
-            voice.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=filename))
+            voice.play(discord.FFmpegPCMAudio(executable="ffmpeg", source=filename))
 
         while voice.is_playing():
             await asyncio.sleep(1)
