@@ -95,7 +95,7 @@ def main():
             return
 
         for key in audioCommands.m_config[serverID]:
-            members.append(f"- {key} {audioCommands.m_config[serverID][key]}")
+            members.append(f"- {key} <https://youtu.be/{audioCommands.m_config[serverID][key].split('=')[1]}>")
 
         if len(members) == 0:
             await ctx.send('Nenhum comando adicionado até o momento. Utilize !add para adicionar comandos novos.')
