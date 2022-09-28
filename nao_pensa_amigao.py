@@ -4,6 +4,7 @@ import os
 import math
 import sys
 import youtube_dl
+import psycopg2
 from discord.ext import commands
 from modules.YTDL import YTDL
 from modules.BotConfig import BotConfig
@@ -26,6 +27,24 @@ def main():
     botConfig = BotConfig("config.config")
     audioCommands = BotConfig("audio_commands.config")
 
+    DATABASE_URL = botConfig.getConfig('DATABASE_URL') if (len(sys.argv) > 1) else os.environ['DATABASE_URL']
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+
+    # check if table exists
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT 1 from commands')     
+        ver = cursor.fetchone()
+    except:
+        # table not exists yet, so we need to create table
+        cursor.execute("ROLLBACK")
+        conn.commit()
+        cursor.execute('CREATE TABLE commands (serverID varchar(255), command varchar(255), url varchar(255))')  
+        conn.commit()
+        print('Table commands created in database!')
+
+    cursor.close()
+    
     blockedNames = ['add', 'help', 'list', 'play', 'remove']
 
     @bot.event
@@ -44,21 +63,19 @@ def main():
         
         channel = ctx.message.author.voice.channel
         voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-        if voice and voice.is_connected():
-            await voice.move_to(channel)
+        if voice is not None:
+            if voice.channel != channel:
+                await voice.disconnect()
+                voice = await channel.connect()
         else:
             voice = await channel.connect()
         ydl = youtube_dl.YoutubeDL(YDL_OPTIONS)
         with ydl:
             info = ydl.extract_info(url, download=False)
             I_URL = info['formats'][0]['url']
-            print(I_URL)
             source = await discord.FFmpegOpusAudio.from_probe(I_URL, **FFMPEG_OPTIONS)
             voice.play(source)
-            while voice.is_playing():
-                await asyncio.sleep(1)
-
-            await voice.disconnect()
+            voice.is_playing()
     
     @bot.command(name='add', help='Adiciona comando para tocar áudio do youtube')
     async def add(ctx, name, url):
@@ -67,22 +84,52 @@ def main():
             return
 
         serverID = str(ctx.message.guild.id)
-        
-        if audioCommands.addCommand(serverID, name, url):
-            await ctx.send(f"{name} adicionado com sucesso!")
+
+        # check if command already exists in database
+        cursor = conn.cursor()
+        try:
+            cursor.execute(f"SELECT serverid, command, url from commands WHERE serverid = '{serverID}' AND command = '{name}' AND url = '{url}'")  
+            ver = cursor.fetchone()
+            if(ver is None):
+                # add command to database
+                cursor.execute("ROLLBACK")
+                conn.commit()
+                cursor.execute(f"INSERT INTO commands VALUES ('{serverID}', '{name}', '{url}')")
+                conn.commit()
+                await ctx.send(f"{name} adicionado com sucesso!")
+                cursor.close()
+                return
+        except:
+            cursor.close()
             return
         
+        cursor.close()
+
         await ctx.send(f"Erro, comando {name} já existe no servidor!")
 
     @bot.command(name='remove', help='Remove um comando do servidor.')
     async def remove(ctx, name):
         serverID = str(ctx.message.guild.id)
 
-        if audioCommands.removeCommand(serverID, name):
-            await ctx.send(f"{name} removido com sucesso!")
+        # check if command already exists in database
+        cursor = conn.cursor()
+        try:
+            cursor.execute(f"SELECT serverid, command, url from commands WHERE serverid = '{serverID}' AND command = '{name}'")  
+            ver = cursor.fetchone()
+            # add command to database
+            if(ver is not None):
+                cursor.execute("ROLLBACK")
+                conn.commit()
+                cursor.execute(f"DELETE FROM commands WHERE serverid = '{serverID}' AND command = '{name}'")
+                conn.commit()
+                await ctx.send(f"{name} removido com sucesso!")
+        except:
+            cursor.close()
             return
-        
+
+        cursor.close()
         await ctx.send(f"Erro, comando {name} não existe no servidor!")
+        
     
     @bot.command(name='list', help='Mostra a lista de comandos existentes no servidor')
     async def list(ctx):
@@ -90,12 +137,21 @@ def main():
 
         serverID = str(ctx.guild.id)
 
-        if serverID not in audioCommands.m_config:
+        # check if command already exists in database
+        cursor = conn.cursor()
+        arr = []
+        try:
+            cursor.execute(f"SELECT command, url from commands")  
+            arr = cursor.fetchall()
+        except:
             await ctx.send('Nenhum comando adicionado até o momento. Utilize !add para adicionar comandos novos.')
             return
+        
+        cursor.close()
 
-        for key in audioCommands.m_config[serverID]:
-            members.append(f"- {key} <https://youtu.be/{audioCommands.m_config[serverID][key].split('=')[1]}>")
+        for element in arr:
+            command, url = element
+            members.append(f"- {command} <https://youtu.be/{url.split('=')[1]}>")
 
         if len(members) == 0:
             await ctx.send('Nenhum comando adicionado até o momento. Utilize !add para adicionar comandos novos.')
@@ -140,6 +196,24 @@ def main():
                 active = False
 
     @bot.event
+    async def on_voice_state_update(member, before, after):
+        
+        if not member.id == bot.user.id:
+            return
+        elif before.channel is None:
+            voice = after.channel.guild.voice_client
+            time = 0
+            while True:
+                await asyncio.sleep(1)
+                time = time + 1
+                if voice.is_playing() and not voice.is_paused():
+                    time = 0
+                if time == 600:
+                    await voice.disconnect()
+                if not voice.is_connected():
+                    break
+
+    @bot.event
     async def on_message(message):
         if message.author == client.user:
             return
@@ -147,38 +221,49 @@ def main():
         await bot.process_commands(message)
 
         serverID = str(message.guild.id)
+        url = ""
 
-        if serverID not in audioCommands.m_config:
+        # check if command already exists in database
+        cursor = conn.cursor()
+        try:
+            cursor.execute(f"SELECT url from commands WHERE serverid = '{serverID}' AND command = '{message.content[1:]}'")  
+            url = cursor.fetchone()[0]
+            # command not exists in database
+            if(url is None):
+                cursor.close()
+                return
+        except:
+            # command not exists in database
+            cursor.close()
             return
+        
+        cursor.close()
 
-        if message.content[0] == '!' and message.content[1:] in audioCommands.m_config[serverID]:
-            channel = message.author.voice.channel
-            url = audioCommands.m_config[serverID][message.content[1:]]
+        channel = message.author.voice.channel
 
-            FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+        FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
 
-            YDL_OPTIONS = {'format': 'bestaudio/best', 'noplaylist':'True'}
-            
-            voice = discord.utils.get(client.voice_clients, guild=message.guild)
-            if voice and voice.is_connected():
-                await voice.move_to(channel)
-            else:
-                voice = await channel.connect()
-            ydl = youtube_dl.YoutubeDL(YDL_OPTIONS)
-            with ydl:
-                info = ydl.extract_info(url, download=False)
-                I_URL = info['formats'][0]['url']
-                print(I_URL)
-                source = await discord.FFmpegOpusAudio.from_probe(I_URL, **FFMPEG_OPTIONS)
-                voice.play(source)
-                while voice.is_playing():
-                    await asyncio.sleep(1)
-
+        YDL_OPTIONS = {'format': 'bestaudio/best', 'noplaylist':'True'}
+        
+        voice = discord.utils.get(bot.voice_clients, guild=message.guild)
+        print('voice', voice)
+        if voice is not None:
+            if voice.channel != channel or not voice.is_connected():
                 await voice.disconnect()
+                voice = await channel.connect()
+        else:
+            voice = await channel.connect()
+        ydl = youtube_dl.YoutubeDL(YDL_OPTIONS)
+        with ydl:
+            info = ydl.extract_info(url, download=False)
+            I_URL = info['formats'][0]['url']
+            source = await discord.FFmpegOpusAudio.from_probe(I_URL, **FFMPEG_OPTIONS)
+            voice.play(source)
+            voice.is_playing()
 
-            return
+        return
 
-    s_TOKEN = botConfig.getConfig('TOKEN') if (len(sys.argv) > 1)  else os.environ['TOKEN']
+    s_TOKEN = botConfig.getConfig('TOKEN') if (len(sys.argv) > 1) else os.environ['TOKEN']
     bot.run(s_TOKEN)
 
 if __name__ == '__main__':
