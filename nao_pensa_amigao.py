@@ -208,7 +208,7 @@ def main():
                 time = time + 1
                 if voice.is_playing() and not voice.is_paused():
                     time = 0
-                if time == 600:
+                if time == 1800:
                     await voice.disconnect()
                 if not voice.is_connected():
                     break
@@ -246,7 +246,6 @@ def main():
         YDL_OPTIONS = {'format': 'bestaudio/best', 'noplaylist':'True'}
         
         voice = discord.utils.get(bot.voice_clients, guild=message.guild)
-        print('voice', voice)
         if voice is not None:
             if voice.channel != channel or not voice.is_connected():
                 await voice.disconnect()
