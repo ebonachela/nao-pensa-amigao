@@ -1,5 +1,5 @@
 discord.py==1.7.3
 youtube_dl==2021.12.17
 PyNaCl
-psycopg2-binary==2.8.3
+psycopg2-binary
 requests
